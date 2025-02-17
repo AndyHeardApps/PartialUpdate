@@ -1,56 +1,33 @@
 import Foundation
 import PartialUpdate
 
-struct Child: PartiallyUpdatable, Identifiable, Codable {
+@PartiallyUpdatable
+struct Child: Identifiable {
 
     let id: UUID
     var string: String?
     var int: Int?
     var double: Double
+    @PartiallyUpdatableIgnored
+    var ignored: UUID
 
     init(
         id: UUID = .init(),
         string: String? = "string",
         int: Int? = nil,
-        double: Double = 5.5
+        double: Double = 5.5,
+        ignored: UUID = .init()
     ) {
         self.id = id
         self.string = string
         self.int = int
         self.double = double
-    }
-
-    struct PartialUpdate: Codable {
-        let id: UUID.PartialUpdate?
-        let string: String?.PartialUpdate?
-        let int: Int?.PartialUpdate?
-        let double: Double.PartialUpdate?
-    }
-
-    func update(from oldValue: Child) -> PartialUpdate? {
-        guard self != oldValue else {
-            return nil
-        }
-
-        return .init(
-            id: id.update(from: oldValue.id),
-            string: string.update(from: oldValue.string),
-            int: int.update(from: oldValue.int),
-            double: double.update(from: oldValue.double)
-        )
-    }
-
-    func updated(with partialUpdate: PartialUpdate?) throws -> Child {
-        try Child(
-            id: id.updated(with: partialUpdate?.id),
-            string: string.updated(with: partialUpdate?.string),
-            int: int.updated(with: partialUpdate?.int),
-            double: double.updated(with: partialUpdate?.double)
-        )
+        self.ignored = ignored
     }
 }
 
-struct Parent: PartiallyUpdatable {
+@PartiallyUpdatable
+struct Parent {
 
     var bool: Bool
     var array: [Child]
@@ -78,7 +55,7 @@ struct Parent: PartiallyUpdatable {
             .init(),
             .init()
         ],
-        option: Option = .person("First", nil)
+        option: Option = .person(first: "First", nil)
     ) {
         self.bool = bool
         self.array = array
@@ -86,98 +63,13 @@ struct Parent: PartiallyUpdatable {
         self.set = set
         self.option = option
     }
-
-    struct PartialUpdate: Codable {
-        let bool: Bool.PartialUpdate?
-        let array: [Child].PartialUpdate?
-        let dictionary: [Int : String].PartialUpdate?
-        let set: Set<Child>.PartialUpdate?
-        let option: Option.PartialUpdate?
-    }
-
-    func update(from oldValue: Parent) -> PartialUpdate? {
-        guard self != oldValue else {
-            return nil
-        }
-
-        return .init(
-            bool: bool.update(from: oldValue.bool),
-            array: array.update(from: oldValue.array),
-            dictionary: dictionary.update(from: oldValue.dictionary),
-            set: set.update(from: oldValue.set),
-            option: option.update(from: oldValue.option)
-        )
-    }
-
-    func updated(with partialUpdate: PartialUpdate?) throws -> Parent {
-        try Parent(
-            bool: bool.updated(with: partialUpdate?.bool),
-            array: array.updated(with: partialUpdate?.array),
-            dictionary: dictionary.updated(with: partialUpdate?.dictionary),
-            set: set.updated(with: partialUpdate?.set),
-            option: option.updated(with: partialUpdate?.option)
-        )
-    }
 }
 
-enum Option: PartiallyUpdatable & Codable {
+@PartiallyUpdatable
+enum Option {
     case int(Int)
-    case person(String, String?)
+    case person(first: String, String?)
     case flat
-
-    enum PartialUpdate: Codable {
-        case int(Int.PartialUpdate?)
-        case person(String.PartialUpdate?, String?.PartialUpdate?)
-        case flat
-        case caseChange(Option)
-    }
-
-    func update(from oldValue: Option) -> PartialUpdate? {
-
-        guard self != oldValue else {
-            return nil
-        }
-
-        switch (self, oldValue) {
-        case let (.int(newInt), .int(oldInt)):
-            return .int(
-                newInt.update(from: oldInt)
-            )
-        case let (.person(newString, newString2), .person(oldString, oldString2)):
-            return .person(
-                newString.update(from: oldString),
-                newString2.update(from: oldString2)
-            )
-        case (.flat, .flat):
-            return .flat
-
-        default:
-            return .caseChange(self)
-
-        }
-    }
-
-    func updated(with partialUpdate: PartialUpdate?) throws -> Option {
-        guard let partialUpdate else {
-            return self
-        }
-
-        switch (self, partialUpdate) {
-        case let (.int(int), .int(intUpdate)):
-            return try .int(int.updated(with: intUpdate))
-        case let (.person(string, string2), .person(stringUpdate, string2Update)):
-            return try .person(
-                string.updated(with: stringUpdate),
-                string2.updated(with: string2Update)
-            )
-        case (.flat, .flat):
-            return .flat
-        case let (_, .caseChange(update)):
-            return update
-        default:
-            throw PartialUpdateError.updatingEnumWithIncorrectCase
-        }
-    }
 }
 
 let inital = Parent()
@@ -197,7 +89,7 @@ updated.set.remove(child)
 child.int = 0
 child.string = "New"
 updated.set.insert(child)
-updated.option = .person("First", "Second")
+updated.option = .person(first: "First", "Second")
 
 let update = updated.update(from: inital)
 
