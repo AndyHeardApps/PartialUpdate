@@ -113,7 +113,7 @@ extension PartiallyUpdatableMacro {
                             .init(
                                 ReturnStmtSyntax(
                                     expression: initializer(
-                                        properties: properties.filter { !$0.isIgnored },
+                                        properties: properties.filter { $0.ignoreLevel < .ignored },
                                         typeName: "PartialUpdate",
                                         functionName: { _ in "update" },
                                         parameterName: { _ in "from" },
@@ -179,10 +179,10 @@ extension PartiallyUpdatableMacro {
                                 ReturnStmtSyntax(
                                     expression: TryExprSyntax(
                                         expression: initializer(
-                                            properties: properties,
+                                            properties: properties.filter { $0.ignoreLevel < .omitted },
                                             typeName: type.trimmedDescription,
-                                            functionName: { $0.isIgnored ? nil : "updated" },
-                                            parameterName: { $0.isIgnored ? nil : "with" },
+                                            functionName: { $0.ignoreLevel > .none ? nil : "updated" },
+                                            parameterName: { $0.ignoreLevel > .none ? nil : "with" },
                                             parameterValue: { property in
                                                 MemberAccessExprSyntax(
                                                     base: OptionalChainingExprSyntax(
@@ -225,7 +225,7 @@ extension PartiallyUpdatableMacro {
             memberBlock: .init(
                 members: .init(
                     itemsBuilder: {
-                        for property in properties where !property.isIgnored {
+                        for property in properties where property.ignoreLevel < .ignored {
                             VariableDeclSyntax(
                                 modifiers: .init {
                                     if let accessScopeModifier {
@@ -310,7 +310,7 @@ extension PartiallyUpdatableMacro {
         // Properties
         let identifier: IdentifierPatternSyntax
         let type: TypeSyntax
-        let isIgnored: Bool
+        let ignoreLevel: IgnoreLevel
 
         // Initializer
         init?(
@@ -339,6 +339,8 @@ extension PartiallyUpdatableMacro {
                 accessors.is(CodeBlockItemListSyntax.self)
             {
                 return nil
+            } else if declaration.modifiers.contains(where: \.isStaticModifier) {
+                return nil
             }
 
             guard let type = binding.typeAnnotation?.type else {
@@ -353,7 +355,19 @@ extension PartiallyUpdatableMacro {
 
             self.identifier = identifier
             self.type = type
-            self.isIgnored = attributeNames.contains("PartiallyUpdatableIgnored")
+            if attributeNames.contains("PartiallyUpdatableOmitted") {
+                self.ignoreLevel = .omitted
+            } else if attributeNames.contains("PartiallyUpdatableIgnored") {
+                self.ignoreLevel = .ignored
+            } else {
+                self.ignoreLevel = .none
+            }
+        }
+
+        enum IgnoreLevel: Comparable {
+            case none
+            case ignored
+            case omitted
         }
     }
 }

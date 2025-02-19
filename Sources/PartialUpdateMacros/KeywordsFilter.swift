@@ -33,4 +33,14 @@ extension DeclModifierSyntax {
             return false
         }
     }
+
+    var isStaticModifier: Bool {
+
+        switch name.tokenKind {
+        case .keyword(.static):
+            return true
+        default:
+            return false
+        }
+    }
 }

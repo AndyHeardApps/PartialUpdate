@@ -7,5 +7,6 @@ struct PartialUpdateMacroPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         PartiallyUpdatableMacro.self,
         PartiallyUpdatableIgnoredMacro.self,
+        PartiallyUpdatableOmittedMacro.self
     ]
 }

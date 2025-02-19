@@ -580,6 +580,69 @@ final class PartialUpdateStructTests: XCTestCase {
         )
     }
 
+    func test_omittedProperty() throws {
+
+        guard MacroTesting.shared.isEnabled else {
+            throw XCTSkip()
+        }
+
+        assertMacroExpansion(
+        """
+        @PartiallyUpdatable
+        struct MyStruct {
+            let int: Int
+            var double: Double?
+            var string: String
+            var array: [Int?]
+            @PartiallyUpdatableOmitted
+            var dictionary: [Int : String]?
+        }
+        """,
+        expandedSource: """
+        struct MyStruct {
+            let int: Int
+            var double: Double?
+            var string: String
+            var array: [Int?]
+            @PartiallyUpdatableOmitted
+            var dictionary: [Int : String]?
+        }
+        
+        extension MyStruct: PartiallyUpdatable {
+        
+            struct PartialUpdate {
+                let int: Int.PartialUpdate?
+                let double: Double?.PartialUpdate?
+                let string: String.PartialUpdate?
+                let array: [Int?].PartialUpdate?
+            }
+        
+            func update(from oldValue: MyStruct) -> PartialUpdate? {
+                guard self != oldValue else {
+                    return nil
+                }
+                return PartialUpdate(
+                    int: int.update(from: oldValue.int),
+                    double: double.update(from: oldValue.double),
+                    string: string.update(from: oldValue.string),
+                    array: array.update(from: oldValue.array)
+                )
+            }
+        
+            func updated(with partialUpdate: PartialUpdate?) throws -> MyStruct {
+                return try MyStruct(
+                    int: int.updated(with: partialUpdate?.int),
+                    double: double.updated(with: partialUpdate?.double),
+                    string: string.updated(with: partialUpdate?.string),
+                    array: array.updated(with: partialUpdate?.array)
+                )
+            }
+        }
+        """,
+        macros: MacroTesting.shared.testMacros
+        )
+    }
+
     func test_ignoreCalculatedProperty() throws {
 
         guard MacroTesting.shared.isEnabled else {
