@@ -16,20 +16,20 @@ extension PartiallyUpdatableMacro {
 
         let partialUpdateDeclaration = partialUpdateDeclaration(
             enumCases: enumCases,
-            type: declaration.name,
+            type: type,
             accessScopeModifier: accessScopeModifier,
             in: declaration
         )
 
         let updatedWithFunctionDeclaration = updatedWithFunctionDeclaration(
             enumCases: enumCases,
-            type: declaration.name,
+            type: type,
             accessScopeModifier: accessScopeModifier
         )
 
         let updateFromFunctionDeclaration = updateFromFunctionDeclaration(
             enumCases: enumCases,
-            type: declaration.name,
+            type: type,
             accessScopeModifier: accessScopeModifier
         )
 
@@ -55,7 +55,7 @@ extension PartiallyUpdatableMacro {
 extension PartiallyUpdatableMacro {
     private static func partialUpdateDeclaration(
         enumCases: [EnumCase],
-        type: TokenSyntax,
+        type: some TypeSyntaxProtocol,
         accessScopeModifier: TokenSyntax?,
         in declaration: EnumDeclSyntax
     ) -> EnumDeclSyntax {
@@ -104,7 +104,7 @@ extension PartiallyUpdatableMacro {
                                     parameterClause: .init(
                                         parameters: [
                                             EnumCaseParameterSyntax(
-                                                type: IdentifierTypeSyntax(name: type).trimmed
+                                                type: type
                                             )
                                         ]
                                     )
@@ -122,7 +122,7 @@ extension PartiallyUpdatableMacro {
 extension PartiallyUpdatableMacro {
     private static func updateFromFunctionDeclaration(
         enumCases: [EnumCase],
-        type: TokenSyntax,
+        type: some TypeSyntaxProtocol,
         accessScopeModifier: TokenSyntax?
     ) -> FunctionDeclSyntax {
         FunctionDeclSyntax(
@@ -139,7 +139,7 @@ extension PartiallyUpdatableMacro {
                         .init(
                             firstName: .identifier("from"),
                             secondName: .identifier("oldValue"),
-                            type: IdentifierTypeSyntax(name: type)
+                            type: type
                         )
                         .trimmed
                     ]
@@ -258,7 +258,7 @@ extension PartiallyUpdatableMacro {
 
     private static func updatedWithFunctionDeclaration(
         enumCases: [EnumCase],
-        type: TokenSyntax,
+        type: some TypeSyntaxProtocol,
         accessScopeModifier: TokenSyntax?
     ) -> FunctionDeclSyntax {
         FunctionDeclSyntax(
@@ -288,7 +288,7 @@ extension PartiallyUpdatableMacro {
                     throwsClause: .init(throwsSpecifier: .keyword(.throws))
                 ),
                 returnClause: .init(
-                    type: IdentifierTypeSyntax(name: type)
+                    type: type
                 )
             ),
             body: .init(
@@ -600,7 +600,7 @@ extension PartiallyUpdatableMacro {
         let enumCases = caseDeclarations
             .map { element in
                 EnumCase(
-                    name: element.name,
+                    name: element.name.trimmed,
                     associatedValues: parseElementAssociatedValues(element: element)
                 )
             }
