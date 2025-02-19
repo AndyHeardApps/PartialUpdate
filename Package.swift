@@ -34,12 +34,19 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
             ]
         ),
-        .target(name: "PartialUpdate", dependencies: ["PartialUpdateMacros"]),
-        .executableTarget(name: "PartialUpdateClient", dependencies: ["PartialUpdate"]),
+        .target(
+            name: "PartialUpdate",
+            dependencies: ["PartialUpdateMacros"]
+        ),
+        .executableTarget(
+            name: "PartialUpdateClient",
+            dependencies: ["PartialUpdate"]
+        ),
         .testTarget(
             name: "PartialUpdateTests",
             dependencies: [
                 "PartialUpdateMacros",
+                "PartialUpdate",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
             ]
         )

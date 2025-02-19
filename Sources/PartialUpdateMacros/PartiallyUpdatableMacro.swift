@@ -38,46 +38,74 @@ public struct PartiallyUpdatableMacro: ExtensionMacro {
 // MARK: - Inheritance clause
 extension PartiallyUpdatableMacro {
 
-    static func inheritanceClause(syntax: InheritanceClauseSyntax?, requireCodable: Bool) -> InheritanceClauseSyntax? {
+    static func inheritanceClause(syntax: InheritanceClauseSyntax?) -> InheritanceClauseSyntax? {
 
-        let inheritedTypeNames = syntax?.inheritedTypes
-            .compactMap { type in
-                type.type.trimmedDescription
-                    .replacingOccurrences(of: "@retroactive", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-            } ?? []
-
-        if inheritedTypeNames.contains("PartiallyUpdatable") {
-            return nil
-        }
+        let inheritedTypeNames = syntax?.existingConformances ?? []
 
         var inheritedTypes: [InheritedTypeListSyntax.Element] = []
         if !inheritedTypeNames.contains("PartiallyUpdatable") {
             inheritedTypes.append(.init(type: IdentifierTypeSyntax(name: "PartiallyUpdatable")))
         }
-        if inheritedTypeNames.contains("Encodable") && !inheritedTypeNames.contains("Decodable") && !inheritedTypeNames.contains("Codable") {
-            inheritedTypes.append(.init(type: IdentifierTypeSyntax(name: "Decodable")))
-        } else if !inheritedTypeNames.contains("Encodable") && inheritedTypeNames.contains("Decodable") && !inheritedTypeNames.contains("Codable") {
-            inheritedTypes.append(.init(type: IdentifierTypeSyntax(name: "Encodable")))
-        } else if !inheritedTypeNames.contains("Encodable") && !inheritedTypeNames.contains("Decodable") && !inheritedTypeNames.contains("Codable") {
-            inheritedTypes.append(.init(type: IdentifierTypeSyntax(name: "Codable")))
-        }
 
         guard !inheritedTypes.isEmpty else {
             return nil
         }
-
-        if inheritedTypes.count > 1 {
-            for index in 0..<inheritedTypes.count-1 {
-                inheritedTypes[index].trailingComma = .commaToken()
-            }
-        }
-
+        
         let inheritanceClause = InheritanceClauseSyntax(
             inheritedTypes: .init(inheritedTypes)
         )
 
         return inheritanceClause
+    }
+
+    static func addCodableConformances(
+        to syntax: InheritanceClauseSyntax?,
+        matching rootClause: InheritanceClauseSyntax?
+    ) -> InheritanceClauseSyntax? {
+
+        let existingConformances = syntax?.existingConformances ?? []
+        let rootConformances = rootClause?.existingConformances.filter { $0.lowercased().hasSuffix("codable") } ?? []
+
+        var newInheritances: [String] = []
+        for rootConformance in rootConformances {
+            guard !existingConformances.contains(rootConformance) else {
+                continue
+            }
+            newInheritances.append(rootConformance)
+        }
+
+        guard !newInheritances.isEmpty else {
+            return syntax
+        }
+
+        let newInheritanceTypes = newInheritances.map {
+            InheritedTypeListSyntax.Element(
+                type: IdentifierTypeSyntax(
+                    name: .identifier($0)
+                )
+            )
+        }
+
+        var newInheritanceClause = syntax ?? InheritanceClauseSyntax(inheritedTypes: [])
+        newInheritanceClause.inheritedTypes.append(contentsOf: newInheritanceTypes)
+        if newInheritanceClause.inheritedTypes.count > 1 {
+            for index in newInheritanceClause.inheritedTypes.indices.prefix(newInheritances.count-1) {
+                newInheritanceClause.inheritedTypes[index].trailingComma = .commaToken()
+            }
+        }
+
+        return newInheritanceClause
+    }
+}
+
+extension InheritanceClauseSyntax {
+    fileprivate var existingConformances: [String] {
+        inheritedTypes
+            .compactMap { type in
+                type.type.trimmedDescription
+                    .replacingOccurrences(of: "@retroactive", with: "")
+                    .trimmingCharacters(in: .whitespaces)
+            }
     }
 }
 

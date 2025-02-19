@@ -26,7 +26,8 @@ extension PartiallyUpdatableMacro {
 
         let partialUpdateDeclaration = partialUpdateDeclaration(
             properties: properties,
-            accessScopeModifier: accessScopeModifier
+            accessScopeModifier: accessScopeModifier,
+            in: declaration
         )
 
         let updateFromFunctionDeclaration = updateFromFunctionDeclaration(
@@ -43,7 +44,7 @@ extension PartiallyUpdatableMacro {
 
         let extensionDeclaration = ExtensionDeclSyntax(
             extendedType: type,
-            inheritanceClause: inheritanceClause(syntax: declaration.inheritanceClause, requireCodable: false),
+            inheritanceClause: inheritanceClause(syntax: declaration.inheritanceClause),
             memberBlock: .init(
                 members: .init(
                     itemsBuilder: {
@@ -208,7 +209,8 @@ extension PartiallyUpdatableMacro {
 extension PartiallyUpdatableMacro {
     private static func partialUpdateDeclaration(
         properties: [Property],
-        accessScopeModifier: TokenSyntax?
+        accessScopeModifier: TokenSyntax?,
+        in declaration: StructDeclSyntax
     ) -> StructDeclSyntax {
 
         StructDeclSyntax(
@@ -219,13 +221,7 @@ extension PartiallyUpdatableMacro {
                 }
             },
             name: "PartialUpdate",
-            inheritanceClause: .init(
-                inheritedTypes: [
-                    .init(
-                        type: IdentifierTypeSyntax(name: "Codable")
-                    )
-                ]
-            ),
+            inheritanceClause: addCodableConformances(to: nil, matching: declaration.inheritanceClause),
             memberBlock: .init(
                 members: .init(
                     itemsBuilder: {

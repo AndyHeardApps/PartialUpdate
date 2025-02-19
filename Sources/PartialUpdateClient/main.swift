@@ -2,7 +2,7 @@ import Foundation
 import PartialUpdate
 
 @PartiallyUpdatable
-struct Child: Identifiable {
+struct Child: Identifiable, Encodable, Decodable {
 
     let id: UUID
     var string: String?
@@ -27,17 +27,17 @@ struct Child: Identifiable {
 }
 
 @PartiallyUpdatable
-struct Parent {
+struct Parent: Codable {
 
     var bool: Bool
-    var array: [Child]
+    var array: [Child]?
     var dictionary: [Int : String]
-    var `set`: Set<Child>
+    var `set`: Set<Child?>
     var option: Option
 
     init(
         bool: Bool = false,
-        array: [Child] = [
+        array: [Child]? = [
             .init(),
             .init(),
             .init(),
@@ -49,7 +49,7 @@ struct Parent {
             3 : "three",
             4 : "four"
         ],
-        `set`: Set<Child> = [
+        `set`: Set<Child?> = [
             .init(),
             .init(),
             .init(),
@@ -66,19 +66,20 @@ struct Parent {
 }
 
 @PartiallyUpdatable
-enum Option {
+public enum Option: Codable {
     case int(Int)
     case person(first: String, String?)
-    case flat
+    case `flat`
 }
 
 let inital = Parent()
 var updated = inital
 updated.bool.toggle()
-updated.array.insert(updated.array.remove(at: 1), at: 2)
-updated.array[2].int = 3
-updated.array[0].double = 0
-updated.array[1].string = nil
+let element = updated.array!.remove(at: 1)
+updated.array?.insert(element, at: 2)
+updated.array?[2].int = 3
+updated.array?[0].double = 0
+updated.array?[1].string = nil
 updated.dictionary.removeValue(forKey: 2)
 updated.dictionary[5] = "five"
 updated.dictionary[3] = "THREE"
@@ -86,8 +87,8 @@ updated.set.removeFirst()
 updated.set.insert(.init())
 var child = updated.set.randomElement()!
 updated.set.remove(child)
-child.int = 0
-child.string = "New"
+child?.int = 0
+child?.string = "New"
 updated.set.insert(child)
 updated.option = .person(first: "First", "Second")
 

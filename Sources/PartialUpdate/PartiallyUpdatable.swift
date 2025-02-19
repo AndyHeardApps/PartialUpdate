@@ -2,7 +2,7 @@
 public protocol PartiallyUpdatable: Hashable {
 
     // MARK: - Associated type
-    associatedtype PartialUpdate: Codable
+    associatedtype PartialUpdate
 
     // MARK: - Functions
     func updated(with partialUpdate: PartialUpdate?) throws -> Self
