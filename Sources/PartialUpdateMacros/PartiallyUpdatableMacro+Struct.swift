@@ -32,13 +32,13 @@ extension PartiallyUpdatableMacro {
 
         let updateFromFunctionDeclaration = updateFromFunctionDeclaration(
             properties: properties,
-            type: declaration.name,
+            type: type,
             accessScopeModifier: accessScopeModifier
         )
 
         let updatedWithFunctionDeclaration = updatedWithFunctionDeclaration(
             properties: properties,
-            type: declaration.name,
+            type: type,
             accessScopeModifier: accessScopeModifier
         )
 
@@ -64,7 +64,7 @@ extension PartiallyUpdatableMacro {
 extension PartiallyUpdatableMacro {
     private static func updateFromFunctionDeclaration(
         properties: [Property],
-        type: TokenSyntax,
+        type: some TypeSyntaxProtocol,
         accessScopeModifier: TokenSyntax?
     ) -> FunctionDeclSyntax {
         FunctionDeclSyntax(
@@ -81,7 +81,7 @@ extension PartiallyUpdatableMacro {
                         .init(
                             firstName: .identifier("from"),
                             secondName: .identifier("oldValue"),
-                            type: IdentifierTypeSyntax(name: type)
+                            type: type
                         )
                         .trimmed
                     ]
@@ -138,7 +138,7 @@ extension PartiallyUpdatableMacro {
 extension PartiallyUpdatableMacro {
     private static func updatedWithFunctionDeclaration(
         properties: [Property],
-        type: TokenSyntax,
+        type: some TypeSyntaxProtocol,
         accessScopeModifier: TokenSyntax?
     ) -> FunctionDeclSyntax {
         FunctionDeclSyntax(
@@ -168,7 +168,7 @@ extension PartiallyUpdatableMacro {
                     throwsClause: .init(throwsSpecifier: .keyword(.throws))
                 ),
                 returnClause: .init(
-                    type: IdentifierTypeSyntax(name: type)
+                    type: type
                 )
             ),
             body: .init(
@@ -180,7 +180,7 @@ extension PartiallyUpdatableMacro {
                                     expression: TryExprSyntax(
                                         expression: initializer(
                                             properties: properties,
-                                            typeName: type.text,
+                                            typeName: type.trimmedDescription,
                                             functionName: { $0.isIgnored ? nil : "updated" },
                                             parameterName: { $0.isIgnored ? nil : "with" },
                                             parameterValue: { property in
