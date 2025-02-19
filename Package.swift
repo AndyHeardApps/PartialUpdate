@@ -17,10 +17,6 @@ let package = Package(
         .library(
             name: "PartialUpdate",
             targets: ["PartialUpdate"]
-        ),
-        .executable(
-            name: "PartialUpdateClient",
-            targets: ["PartialUpdateClient"]
         )
     ],
     dependencies: [
@@ -37,10 +33,6 @@ let package = Package(
         .target(
             name: "PartialUpdate",
             dependencies: ["PartialUpdateMacros"]
-        ),
-        .executableTarget(
-            name: "PartialUpdateClient",
-            dependencies: ["PartialUpdate"]
         ),
         .testTarget(
             name: "PartialUpdateTests",
