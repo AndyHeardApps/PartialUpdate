@@ -14,6 +14,15 @@ extension PartiallyUpdatableMacro {
 
         let enumCases = parseEnumCases(on: declaration)
 
+        guard !enumCases.isEmpty else {
+            throw DiagnosticsError(diagnostics: [
+                .init(
+                    node: Syntax(declaration),
+                    message: DiagnosticMessage.noEnumCases
+                )
+            ])
+        }
+
         let partialUpdateDeclaration = partialUpdateDeclaration(
             enumCases: enumCases,
             type: type,
@@ -97,20 +106,22 @@ extension PartiallyUpdatableMacro {
                                 }
                             )
                         }
-                        EnumCaseDeclSyntax(
-                            elements: [
-                                .init(
-                                    name: "caseChange",
-                                    parameterClause: .init(
-                                        parameters: [
-                                            EnumCaseParameterSyntax(
-                                                type: type
-                                            )
-                                        ]
+                        if enumCases.count > 1 {
+                            EnumCaseDeclSyntax(
+                                elements: [
+                                    .init(
+                                        name: "caseChange",
+                                        parameterClause: .init(
+                                            parameters: [
+                                                EnumCaseParameterSyntax(
+                                                    type: type
+                                                )
+                                            ]
+                                        )
                                     )
-                                )
-                            ]
-                        )
+                                ]
+                            )
+                        }
                     }
                 )
             )
@@ -150,73 +161,73 @@ extension PartiallyUpdatableMacro {
                     )
                 )
             ),
-            body: .init(
-                statements: [
-                    .init(
-                        item: .stmt(
-                            .init(
-                                guardStatement(
-                                    lhs: .keyword(.self),
-                                    operator: "!=",
-                                    rhs: .identifier("oldValue"),
-                                    returnExpression: NilLiteralExprSyntax()
-                                )
+            body: .init {
+                CodeBlockItemSyntax(
+                    item: .stmt(
+                        .init(
+                            guardStatement(
+                                lhs: .keyword(.self),
+                                operator: "!=",
+                                rhs: .identifier("oldValue"),
+                                returnExpression: NilLiteralExprSyntax()
                             )
                         )
-                    ),
-                    .init(
-                        item: .expr(
-                            .init(
-                                SwitchExprSyntax(
-                                    subject: TupleExprSyntax(elements: [
-                                        .init(expression: DeclReferenceExprSyntax(baseName: .keyword(.self)), trailingComma: .commaToken()),
-                                        .init(expression: DeclReferenceExprSyntax(baseName: .identifier("oldValue")))
-                                    ]),
-                                    cases: .init {
-                                        for enumCase in enumCases {
+                    )
+                )
+                CodeBlockItemSyntax(
+                    item: .expr(
+                        .init(
+                            SwitchExprSyntax(
+                                subject: TupleExprSyntax(elements: [
+                                    .init(expression: DeclReferenceExprSyntax(baseName: .keyword(.self)), trailingComma: .commaToken()),
+                                    .init(expression: DeclReferenceExprSyntax(baseName: .identifier("oldValue")))
+                                ]),
+                                cases: .init {
+                                    for enumCase in enumCases {
 
-                                            let patternMatch = patternMatch(
-                                                enumCase: enumCase,
-                                                lhsPrefix: "current",
-                                                rhsPrefix: "old"
-                                            )
+                                        let patternMatch = patternMatch(
+                                            enumCase: enumCase,
+                                            lhsPrefix: "current",
+                                            rhsPrefix: "old"
+                                        )
 
-                                            let updateCall = caseInitializer(
-                                                enumCase: enumCase,
-                                                baseName: { $0.uniqueName(prefixedWith: "current") },
-                                                functionName: { _ in .identifier("update") },
-                                                parameterName: { _ in .identifier("from") },
-                                                parameterValue: { $0.uniqueName(prefixedWith: "old") }
-                                            )
+                                        let updateCall = caseInitializer(
+                                            enumCase: enumCase,
+                                            baseName: { $0.uniqueName(prefixedWith: "current") },
+                                            functionName: { _ in .identifier("update") },
+                                            parameterName: { _ in .identifier("from") },
+                                            parameterValue: { $0.uniqueName(prefixedWith: "old") }
+                                        )
 
-                                            SwitchCaseSyntax(
-                                                label: .case(
-                                                    SwitchCaseLabelSyntax(
-                                                        caseItems: SwitchCaseItemListSyntax {
-                                                            if enumCase.associatedValues.isEmpty {
-                                                                SwitchCaseItemSyntax(pattern: patternMatch)
-                                                            } else {
-                                                                SwitchCaseItemSyntax(
-                                                                    pattern: ValueBindingPatternSyntax(
-                                                                        bindingSpecifier: .keyword(.let),
-                                                                        pattern: patternMatch
-                                                                    )
+                                        SwitchCaseSyntax(
+                                            label: .case(
+                                                SwitchCaseLabelSyntax(
+                                                    caseItems: SwitchCaseItemListSyntax {
+                                                        if enumCase.associatedValues.isEmpty {
+                                                            SwitchCaseItemSyntax(pattern: patternMatch)
+                                                        } else {
+                                                            SwitchCaseItemSyntax(
+                                                                pattern: ValueBindingPatternSyntax(
+                                                                    bindingSpecifier: .keyword(.let),
+                                                                    pattern: patternMatch
                                                                 )
-                                                            }
-                                                        }
-                                                    )
-                                                ),
-                                                statements: .init {
-                                                    .init(
-                                                        item: .init(
-                                                            ReturnStmtSyntax(
-                                                                expression: updateCall
                                                             )
+                                                        }
+                                                    }
+                                                )
+                                            ),
+                                            statements: .init {
+                                                .init(
+                                                    item: .init(
+                                                        ReturnStmtSyntax(
+                                                            expression: updateCall
                                                         )
                                                     )
-                                                }
-                                            )
-                                        }
+                                                )
+                                            }
+                                        )
+                                    }
+                                    if enumCases.count > 1 {
                                         SwitchCaseSyntax(
                                             label: .default(.init()),
                                             statements: [
@@ -243,12 +254,12 @@ extension PartiallyUpdatableMacro {
                                             ]
                                         )
                                     }
-                                )
+                                }
                             )
                         )
                     )
-                ]
-            )
+                )
+            }
         )
     }
 }
@@ -387,74 +398,76 @@ extension PartiallyUpdatableMacro {
                                                 }
                                             )
                                         }
-                                        SwitchCaseSyntax(
-                                            label: .case(
-                                                .init(
-                                                    caseItems: [
-                                                        SwitchCaseItemSyntax(
-                                                            pattern: ValueBindingPatternSyntax(
-                                                                bindingSpecifier: .keyword(.let),
-                                                                pattern: ExpressionPatternSyntax(
-                                                                    expression: TupleExprSyntax(
-                                                                        elements: [
-                                                                            LabeledExprSyntax(
-                                                                                expression: DiscardAssignmentExprSyntax(),
-                                                                                trailingComma: .commaToken()
-                                                                            ),
-                                                                            LabeledExprSyntax(
-                                                                                expression: FunctionCallExprSyntax(
-                                                                                    calledExpression: MemberAccessExprSyntax(
-                                                                                        name: .identifier("caseChange")
-                                                                                    ),
-                                                                                    leftParen: .leftParenToken(),
-                                                                                    arguments: [
-                                                                                        LabeledExprSyntax(
-                                                                                            expression: PatternExprSyntax(
-                                                                                                pattern: IdentifierPatternSyntax(identifier: .identifier("update"))
+                                        if enumCases.count > 1 {
+                                            SwitchCaseSyntax(
+                                                label: .case(
+                                                    .init(
+                                                        caseItems: [
+                                                            SwitchCaseItemSyntax(
+                                                                pattern: ValueBindingPatternSyntax(
+                                                                    bindingSpecifier: .keyword(.let),
+                                                                    pattern: ExpressionPatternSyntax(
+                                                                        expression: TupleExprSyntax(
+                                                                            elements: [
+                                                                                LabeledExprSyntax(
+                                                                                    expression: DiscardAssignmentExprSyntax(),
+                                                                                    trailingComma: .commaToken()
+                                                                                ),
+                                                                                LabeledExprSyntax(
+                                                                                    expression: FunctionCallExprSyntax(
+                                                                                        calledExpression: MemberAccessExprSyntax(
+                                                                                            name: .identifier("caseChange")
+                                                                                        ),
+                                                                                        leftParen: .leftParenToken(),
+                                                                                        arguments: [
+                                                                                            LabeledExprSyntax(
+                                                                                                expression: PatternExprSyntax(
+                                                                                                    pattern: IdentifierPatternSyntax(identifier: .identifier("update"))
+                                                                                                )
                                                                                             )
-                                                                                        )
-                                                                                    ],
-                                                                                    rightParen: .rightParenToken()
+                                                                                        ],
+                                                                                        rightParen: .rightParenToken()
+                                                                                    )
                                                                                 )
-                                                                            )
-                                                                        ]
+                                                                            ]
+                                                                        )
+                                                                    )
+                                                                )
+                                                            )
+                                                        ]
+                                                    )
+                                                ),
+                                                statements: [
+                                                    .init(
+                                                        item: .init(
+                                                            ReturnStmtSyntax(
+                                                                expression: DeclReferenceExprSyntax(
+                                                                    baseName: .identifier(
+                                                                        "update"
                                                                     )
                                                                 )
                                                             )
                                                         )
-                                                    ]
-                                                )
-                                            ),
-                                            statements: [
-                                                .init(
-                                                    item: .init(
-                                                        ReturnStmtSyntax(
-                                                            expression: DeclReferenceExprSyntax(
-                                                                baseName: .identifier(
-                                                                    "update"
+                                                    )
+                                                ]
+                                            )
+                                            SwitchCaseSyntax(
+                                                label: .default(.init()),
+                                                statements: [
+                                                    .init(
+                                                        item: .init(
+                                                            ThrowStmtSyntax(
+                                                                expression: MemberAccessExprSyntax(
+                                                                    base: DeclReferenceExprSyntax(baseName: .identifier("PartialUpdateError")),
+                                                                    period: .periodToken(),
+                                                                    name: .identifier("updatingEnumWithIncorrectCase")
                                                                 )
                                                             )
                                                         )
                                                     )
-                                                )
-                                            ]
-                                        )
-                                        SwitchCaseSyntax(
-                                            label: .default(.init()),
-                                            statements: [
-                                                .init(
-                                                    item: .init(
-                                                        ThrowStmtSyntax(
-                                                            expression: MemberAccessExprSyntax(
-                                                                base: DeclReferenceExprSyntax(baseName: .identifier("PartialUpdateError")),
-                                                                period: .periodToken(),
-                                                                name: .identifier("updatingEnumWithIncorrectCase")
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            ]
-                                        )
+                                                ]
+                                            )
+                                        }
                                     }
                                 )
                             )
