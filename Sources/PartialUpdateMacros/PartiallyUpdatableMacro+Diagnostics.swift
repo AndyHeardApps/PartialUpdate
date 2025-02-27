@@ -5,6 +5,7 @@ extension PartiallyUpdatableMacro {
 
         case notAValueType
         case noTypeAnnotation
+        case noEnumCases
     }
 }
 
@@ -17,6 +18,8 @@ extension PartiallyUpdatableMacro.DiagnosticMessage: SwiftDiagnostics.Diagnostic
             "Macro \"@PartiallyUpdatable\" can only be applied to a value type."
         case .noTypeAnnotation:
             "Property must include a type annotation to be included in \"@PartiallyUpdatable\" macro."
+        case .noEnumCases:
+            "Enum must have at least one case to use the \"@PartiallyUpdatable\" macro. "
         }
     }
 
@@ -27,6 +30,8 @@ extension PartiallyUpdatableMacro.DiagnosticMessage: SwiftDiagnostics.Diagnostic
             "notAValueType"
         case .noTypeAnnotation:
             "noTypeAnnotation"
+        case .noEnumCases:
+            "noEnumCases"
         }
     }
 
@@ -45,6 +50,8 @@ extension PartiallyUpdatableMacro.DiagnosticMessage: SwiftDiagnostics.Diagnostic
             .error
         case .noTypeAnnotation:
             .warning
+        case .noEnumCases:
+            .error
         }
     }
 }
