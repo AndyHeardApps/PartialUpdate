@@ -343,7 +343,20 @@ extension PartiallyUpdatableMacro {
                 return nil
             }
 
-            guard let type = binding.typeAnnotation?.type else {
+            self.identifier = identifier
+            if attributeNames.contains("PartiallyUpdatableOmitted") {
+                self.ignoreLevel = .omitted
+            } else if attributeNames.contains("PartiallyUpdatableIgnored") {
+                self.ignoreLevel = .ignored
+            } else {
+                self.ignoreLevel = .none
+            }
+
+            if let type = binding.typeAnnotation?.type {
+                self.type = type
+            } else if ignoreLevel != .none {
+                self.type = .init(IdentifierTypeSyntax(name: .identifier("Never")))
+            } else {
                 context.diagnose(
                     .init(
                         node: binding,
@@ -351,16 +364,6 @@ extension PartiallyUpdatableMacro {
                     )
                 )
                 return nil
-            }
-
-            self.identifier = identifier
-            self.type = type
-            if attributeNames.contains("PartiallyUpdatableOmitted") {
-                self.ignoreLevel = .omitted
-            } else if attributeNames.contains("PartiallyUpdatableIgnored") {
-                self.ignoreLevel = .ignored
-            } else {
-                self.ignoreLevel = .none
             }
         }
 
