@@ -4,7 +4,7 @@ import SwiftSyntaxMacros
 @main
 struct PartialUpdateMacroPlugin: CompilerPlugin {
 
-    let providingMacros: [Macro.Type] = [
+    let providingMacros: [any Macro.Type] = [
         PartiallyUpdatableMacro.self,
         PartiallyUpdatableIgnoredMacro.self,
         PartiallyUpdatableOmittedMacro.self

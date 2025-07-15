@@ -11,7 +11,7 @@ extension Int: PartiallyUpdatable {
     }
 }
 
-@available(macOS 15.0, *)
+@available(macOS 15.0, iOS 18.0, *)
 extension Int128: PartiallyUpdatable {
 
     public func updated(with partialUpdate: Int128?) throws -> Int128 {
@@ -78,7 +78,7 @@ extension UInt: PartiallyUpdatable {
     }
 }
 
-@available(macOS 15.0, *)
+@available(macOS 15.0, iOS 18.0, *)
 extension UInt128: PartiallyUpdatable {
 
     public func updated(with partialUpdate: UInt128?) throws -> UInt128 {
