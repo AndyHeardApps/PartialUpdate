@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -8,10 +8,7 @@ let package = Package(
     name: "PartialUpdate",
     platforms: [
         .macOS(.v10_15),
-        .iOS(.v13),
-        .tvOS(.v13),
-        .watchOS(.v6),
-        .macCatalyst(.v13)
+        .iOS(.v13)
     ],
     products: [
         .library(
@@ -28,11 +25,15 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
-            ]
+            ],
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "PartialUpdate",
-            dependencies: ["PartialUpdateMacros"]
+            dependencies: [
+                "PartialUpdateMacros"
+            ],
+            swiftSettings: swiftSettings
         ),
         .testTarget(
             name: "PartialUpdateTests",
@@ -40,8 +41,14 @@ let package = Package(
                 "PartialUpdateMacros",
                 "PartialUpdate",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
-            ]
+            ],
+            swiftSettings: swiftSettings
         )
     ],
     swiftLanguageModes: [.v6]
 )
+
+var swiftSettings: [SwiftSetting] { [
+    .enableExperimentalFeature("ExistentialAny"),
+    .enableExperimentalFeature("StrictConcurrency")
+] }

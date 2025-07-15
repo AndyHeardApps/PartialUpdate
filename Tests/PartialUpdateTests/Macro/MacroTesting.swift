@@ -9,7 +9,7 @@ struct MacroTesting {
     static let shared = MacroTesting()
 
     // MARK: - Properties
-    let testMacros: [String : Macro.Type]
+    let testMacros: [String : any Macro.Type]
     let isEnabled: Bool
 
     // MARK: - Initializer
