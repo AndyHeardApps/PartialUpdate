@@ -331,7 +331,9 @@ extension PartiallyUpdatableMacro {
                 let accessors = binding.accessorBlock?.accessors
                     .as(AccessorDeclListSyntax.self)?
                     .compactMap(\.accessorSpecifier.tokenKind),
-                accessors.contains(.keyword(.set)) || accessors.contains(.keyword(.get))
+                accessors.contains(.keyword(.set)) ||
+                    accessors.contains(.keyword(.get)) ||
+                    accessors.contains(.keyword(._read))
             {
                 return nil
             } else if

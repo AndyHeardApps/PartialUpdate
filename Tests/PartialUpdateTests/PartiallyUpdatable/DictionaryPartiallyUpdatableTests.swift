@@ -2,21 +2,19 @@ import Foundation
 import Testing
 import PartialUpdateMacros
 
-@Suite("Dictionary PartiallyUpdatable")
-struct DictionaryPartiallyUpdatableTests {}
+@Suite
+struct `Dictionary PartiallyUpdatable` {}
 
-extension DictionaryPartiallyUpdatableTests {
+extension `Dictionary PartiallyUpdatable` {
 
-
-    @Test("No changes")
-    func noChanges() throws {
+    @Test
+    func `no changes`() throws {
         let value = [0 : "zero"]
         #expect(value.update(from: value) == nil)
         try #expect(value.updated(with: nil) == value)
     }
 
     @Test(
-        "Hashable",
         arguments: [
             ("Insert", 1, [0 : "zero"], [0 : "zero", 1 : "one"]),
             ("Remove", 1, [0 : "zero", 1 : "one"], [0 : "zero"]),
@@ -39,7 +37,6 @@ extension DictionaryPartiallyUpdatableTests {
     }
 
     @Test(
-        "Identifiable",
         arguments: [
             ("Insert", 1, [0 : MockStruct()], [0 : MockStruct(), 1 : MockStruct(id: 1)]),
             ("Remove", 1, [0 : MockStruct(), 1 : MockStruct(id: 1)], [0 : MockStruct()]),
@@ -61,7 +58,7 @@ extension DictionaryPartiallyUpdatableTests {
         #expect(newValue == updated)
     }
 
-    @Test("Codable")
+    @Test
     func codable() throws {
         let value1 = [0 : MockStruct(), 1 : MockStruct(id: 1), 2 : MockStruct(id: 2)]
         let value2 = [1 : MockStruct(id: 1).mutated(), 0 : MockStruct(), 3 : MockStruct(id: 3)]

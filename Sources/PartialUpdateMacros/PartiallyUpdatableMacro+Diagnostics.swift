@@ -2,7 +2,6 @@ import SwiftDiagnostics
 
 extension PartiallyUpdatableMacro {
     enum DiagnosticMessage {
-
         case notAValueType
         case noTypeAnnotation
         case noEnumCases
@@ -12,7 +11,6 @@ extension PartiallyUpdatableMacro {
 extension PartiallyUpdatableMacro.DiagnosticMessage: SwiftDiagnostics.DiagnosticMessage {
 
     var message: String {
-
         switch self {
         case .notAValueType:
             "Macro \"@PartiallyUpdatable\" can only be applied to a value type."
@@ -24,7 +22,6 @@ extension PartiallyUpdatableMacro.DiagnosticMessage: SwiftDiagnostics.Diagnostic
     }
 
     private var messageID: String {
-
         switch self {
         case .notAValueType:
             "notAValueType"
@@ -36,7 +33,6 @@ extension PartiallyUpdatableMacro.DiagnosticMessage: SwiftDiagnostics.Diagnostic
     }
 
     var diagnosticID: MessageID {
-
         .init(
             domain: "PartiallyUpdatableMacro",
             id: messageID
@@ -44,7 +40,6 @@ extension PartiallyUpdatableMacro.DiagnosticMessage: SwiftDiagnostics.Diagnostic
     }
 
     var severity: DiagnosticSeverity {
-
         switch self {
         case .notAValueType:
             .error

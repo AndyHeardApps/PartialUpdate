@@ -131,6 +131,7 @@ extension PartiallyUpdatableMacro {
 
 // MARK: - Updated from function declaration
 extension PartiallyUpdatableMacro {
+    
     private static func updateFromFunctionDeclaration(
         enumCases: [EnumCase],
         type: some TypeSyntaxProtocol,
