@@ -3,44 +3,45 @@ import SwiftSyntax
 extension DeclModifierSyntax {
 
     var minimumProtocolWitnessVisibilityForAccessModifier: TokenSyntax? {
-
         switch name.tokenKind {
         case .keyword(.public):
-            return .keyword(.public)
+            .keyword(.public)
+        case .keyword(.package):
+            .keyword(.package)
         case .keyword(.internal):
-            return .keyword(.internal)
+            .keyword(.internal)
         case .keyword(.fileprivate):
-            return .keyword(.fileprivate)
+            .keyword(.fileprivate)
         case .keyword(.private):
-            return .keyword(.fileprivate)
+            .keyword(.fileprivate)
         default:
-            return nil
+            nil
         }
     }
 
     var isNeededAccessLevelModifier: Bool {
-
         switch name.tokenKind {
         case .keyword(.public):
-            return true
+            true
+        case .keyword(.package):
+            true
         case .keyword(.internal):
-            return false
+            false
         case .keyword(.fileprivate):
-            return true
+            true
         case .keyword(.private):
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
     var isStaticModifier: Bool {
-
         switch name.tokenKind {
         case .keyword(.static):
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 }

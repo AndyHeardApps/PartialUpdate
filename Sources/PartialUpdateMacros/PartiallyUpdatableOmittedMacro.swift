@@ -11,14 +11,14 @@ extension PartiallyUpdatableOmittedMacro: AccessorMacro {
         providingAccessorsOf declaration: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [AccessorDeclSyntax] {
-        if declaration.is(EnumDeclSyntax.self) {
+        
+        guard declaration.is(StructDeclSyntax.self) else {
             context.diagnose(
                 .init(
                     node: node,
-                    message: DiagnosticMessage.cannotBeAppliedToEnum
+                    message: DiagnosticMessage.canOnlyBeAppliedToStructProperty
                 )
             )
-        } else if declaration.is(StructDeclSyntax.self) {
             return []
         }
 

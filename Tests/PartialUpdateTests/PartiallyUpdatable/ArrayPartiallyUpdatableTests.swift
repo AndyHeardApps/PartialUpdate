@@ -2,20 +2,19 @@ import Foundation
 import Testing
 import PartialUpdateMacros
 
-@Suite("Array PartiallyUpdatable")
-struct ArrayPartiallyUpdatableTests {}
+@Suite
+struct `Array PartiallyUpdatable` {}
 
-extension ArrayPartiallyUpdatableTests {
+extension `Array PartiallyUpdatable` {
 
-    @Test("No changes")
-    func noChanges() throws {
+    @Test
+    func `no changes`() throws {
         let value = [0, 1]
         #expect(value.update(from: value) == nil)
         try #expect(value.updated(with: nil) == value)
     }
 
     @Test(
-        "Hashable",
         arguments: [
             ("Insert", 1, [0, 1, 2], [0, 1, 2, 3]),
             ("Remove", 1, [0, 1, 2], [0, 1]),
@@ -38,7 +37,6 @@ extension ArrayPartiallyUpdatableTests {
     }
 
     @Test(
-        "Identifiable",
         arguments: [
             ("Insert", 1, [MockStruct()], [MockStruct(), MockStruct(id: 1)]),
             ("Remove", 1, [MockStruct(), MockStruct(id: 1)], [MockStruct()]),
@@ -61,7 +59,7 @@ extension ArrayPartiallyUpdatableTests {
         #expect(newValue == updated)
     }
 
-    @Test("Codable")
+    @Test
     func codable() throws {
         let value1 = [MockStruct(), MockStruct(id: 1), MockStruct(id: 2)]
         let value2 = [MockStruct(id: 1).mutated(), MockStruct(), MockStruct(id: 3)]

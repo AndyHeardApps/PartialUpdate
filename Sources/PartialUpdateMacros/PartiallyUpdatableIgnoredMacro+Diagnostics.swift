@@ -3,7 +3,7 @@ import SwiftDiagnostics
 extension PartiallyUpdatableIgnoredMacro {
     enum DiagnosticMessage {
 
-        case cannotBeAppliedToEnum
+        case canOnlyBeAppliedToStructProperty
     }
 }
 
@@ -12,7 +12,7 @@ extension PartiallyUpdatableIgnoredMacro.DiagnosticMessage: SwiftDiagnostics.Dia
     var message: String {
 
         switch self {
-        case .cannotBeAppliedToEnum:
+        case .canOnlyBeAppliedToStructProperty:
             "Macro \"@PartiallyUpdatableIgnored\" can only be applied to a struct property."
         }
     }
@@ -20,8 +20,8 @@ extension PartiallyUpdatableIgnoredMacro.DiagnosticMessage: SwiftDiagnostics.Dia
     private var messageID: String {
 
         switch self {
-        case .cannotBeAppliedToEnum:
-            "cannotBeAppliedToEnum"
+        case .canOnlyBeAppliedToStructProperty:
+            "canOnlyBeAppliedToStructProperty"
         }
     }
 
@@ -36,7 +36,7 @@ extension PartiallyUpdatableIgnoredMacro.DiagnosticMessage: SwiftDiagnostics.Dia
     var severity: DiagnosticSeverity {
 
         switch self {
-        case .cannotBeAppliedToEnum:
+        case .canOnlyBeAppliedToStructProperty:
             .warning
         }
     }

@@ -10,7 +10,7 @@ public protocol PartiallyUpdatable: Hashable {
     // MARK: - Functions
 
     /// Updates this instance with the provided `PartialUpdate` object.
-    /// - Parameter partialUpdate: The object containing the changes to be applied to this instance. If `nil` then no changes are made.
+    /// - Parameter partialUpdate: The object containing the changes to be applied to this instance. If `nil`, then no changes are made.
     /// - Returns: The updated instance of the object.
     func updated(with partialUpdate: PartialUpdate?) throws -> Self
 

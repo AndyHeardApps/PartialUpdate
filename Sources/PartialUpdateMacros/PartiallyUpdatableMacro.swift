@@ -1,3 +1,4 @@
+import Foundation
 import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxMacros
@@ -13,13 +14,13 @@ public struct PartiallyUpdatableMacro: ExtensionMacro {
     ) throws -> [ExtensionDeclSyntax] {
 
         if let enumDeclaration = declaration.as(EnumDeclSyntax.self) {
-            return try enumExtensionSyntax(
+            try enumExtensionSyntax(
                 declaration: enumDeclaration,
                 type: type,
                 in: context
             )
         } else if let structDeclaration = declaration.as(StructDeclSyntax.self) {
-            return try structExtensionSyntax(
+            try structExtensionSyntax(
                 declaration: structDeclaration,
                 type: type,
                 in: context
@@ -63,8 +64,11 @@ extension PartiallyUpdatableMacro {
         matching rootClause: InheritanceClauseSyntax?
     ) -> InheritanceClauseSyntax? {
 
+        let protocols: Set<String> = ["Encodable", "Decodable", "Codable"]
         let existingConformances = syntax?.existingConformances ?? []
-        let rootConformances = rootClause?.existingConformances.filter { $0.lowercased().hasSuffix("codable") } ?? []
+        let rootConformances = rootClause?.existingConformances.filter {
+            protocols.contains($0)
+        } ?? []
 
         var newInheritances: [String] = []
         for rootConformance in rootConformances {
@@ -103,7 +107,7 @@ extension InheritanceClauseSyntax {
         inheritedTypes
             .compactMap { type in
                 type.type.trimmedDescription
-                    .replacingOccurrences(of: "@retroactive", with: "")
+                    .replacing("@retroactive", with: "")
                     .trimmingCharacters(in: .whitespaces)
             }
     }
